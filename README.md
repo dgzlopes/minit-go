@@ -6,7 +6,9 @@ Minit is a minimal tracing library for Go. When I say minimal, I mean it.
 
 It's less than 250 lines of code, and, as you can expect, it doesn't have many features. For example, it only supports exporting spans to an OTEL-HTTP-compatible collector, doesn't support sampling, etc. The bits/helpers required to inject and extract trace context in different protocols aren't implemented, either. 
 
-Truth to be said: Because it's so tiny, it's easy to understand and modify. It's also easy to use in simple, non-distributed applications.
+Truth to be said: Because it's so tiny, it's easy to understand and modify. 
+
+It's also easy to use in simple, non-distributed applications.
 
 ## Installation
 
