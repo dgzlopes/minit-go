@@ -1,10 +1,10 @@
-package main
+package minit
 
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"sync"
 	"time"
@@ -77,6 +77,9 @@ func (t *TracingClient) Export() error {
 				sp := sps.AppendEmpty()
 				sp.SetTraceID(span.TraceID)
 				sp.SetSpanID(NewSpanID())
+				if span.ParentID != [8]byte{} {
+					sp.SetParentSpanID(span.ParentID)
+				}
 				sp.SetName(span.Operation)
 				if span.IsOK {
 					sp.Status().SetCode(ptrace.StatusCodeOk)
@@ -145,8 +148,10 @@ type Span struct {
 	Attributes map[string]string
 	IsOK       bool
 
-	TraceID   [16]byte
-	SpanID    [8]byte
+	TraceID  [16]byte
+	SpanID   [8]byte
+	ParentID [8]byte
+
 	StartTime time.Time
 	EndTime   time.Time
 }
@@ -177,6 +182,15 @@ func (t *Trace) InjectInContext(ctx context.Context) context.Context {
 	return context.WithValue(ctx, "trace", t)
 }
 
+func (t *TracingClient) StartSpanFromCtx(ctx context.Context, operation string) (*Span, context.Context) {
+	trace := t.ContinueTraceFromContext(ctx)
+	span := trace.StartSpan(operation)
+	if ctx.Value("span") != nil {
+		span.ParentID = ctx.Value("span").(*Span).SpanID
+	}
+	return span, context.WithValue(ctx, "span", span)
+}
+
 func (t *Trace) StartSpan(operation string) *Span {
 	t.mx.Lock()
 	defer t.mx.Unlock()
@@ -205,78 +219,4 @@ func (s *Span) Finish() *Span {
 func (s *Span) MarkAsFailed() *Span {
 	s.IsOK = false
 	return s
-}
-
-func RunNonTracedProcess() {
-	// Very realistic! :)
-	time.Sleep(5 * time.Second)
-}
-
-func RunCallToDB(trace *Trace) {
-	span := trace.NewDBSpan("get_users")
-	span.Attributes["db.statement"] = "SELECT * FROM users"
-	defer span.Finish()
-
-	// Very realistic! :)
-	time.Sleep(1 * time.Second)
-
-	span.Events = append(span.Events, Event{
-		Timestamp: time.Now(),
-		Fields: map[string]string{
-			"event": "query_finished",
-		},
-	})
-}
-
-func TriggerFailure(trace *Trace) {
-	span := trace.StartSpan("trigger_failure")
-	defer span.Finish()
-
-	// Very realistic! :)
-	time.Sleep(1 * time.Second)
-
-	span.MarkAsFailed()
-}
-
-func CallWithContext(ctx context.Context, tracing_client *TracingClient) {
-	trace := tracing_client.ContinueTraceFromContext(ctx)
-	span := trace.StartSpan("call_with_context")
-	defer span.Finish()
-
-	// Very realistic! :)
-	time.Sleep(1 * time.Second)
-}
-
-func (s *Trace) NewDBSpan(operation string) *Span {
-	span := s.StartSpan(operation)
-	span.Service.Name = "db"
-	span.Service.Attributes = map[string]string{
-		"db.type": "mysql",
-	}
-	return span
-}
-
-func main() {
-	// Create a new tracing client
-	tracing_client := NewTracingClient("http://localhost:4318/v1/traces")
-
-	// Start a trace
-	trace := tracing_client.StartTrace()
-	root := trace.StartSpan("main")
-
-	// Do some work
-	RunNonTracedProcess()
-	RunCallToDB(trace)
-	TriggerFailure(trace)
-
-	// Create a context with the trace
-	ctx := trace.InjectInContext(context.Background())
-	CallWithContext(ctx, tracing_client)
-
-	root.Finish()
-
-	err := tracing_client.Export()
-	if err != nil {
-		panic(err)
-	}
 }
