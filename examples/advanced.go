@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	minit "github.com/dgzlopes/minit"
+	"github.com/dgzlopes/minit"
 )
 
 func NewDBSpan(trace *minit.Trace, operation string) *minit.Span {
