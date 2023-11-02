@@ -1,16 +1,12 @@
 # minit-go
 
-> **NOTE:** You don't want to use this library. Should should probably be using [OpenTelemetry](https://opentelemetry.io/).
+> **NOTE:** You don't want to use this library. You should probably be using [OpenTelemetry](https://opentelemetry.io/).
 
-Minit is minimal tracing library for Go.
+Minit is a minimal tracing library for Go. When I say minimal, I mean it. It's less than 250 lines of code, and, as you can expect, it doesn't have many features. For example, it only supports exporting spans to an OpenTelemetry-compatible collector, doesn't support sampling, etc. 
 
-When I say minimal, I mean it. It's less than 250 lines of code, and, ss you can expect, it's not very featureful.
+Also, Minit isn't what you are looking for if you want to do actual distributed tracing. The bits/helpers required to inject and extract trace context in different protocols are missing. Truth to be said: Because it's so tiny, it's easy to understand and modify. 
 
-For example, it only supports exporting spans to an OpenTelemetry-compatible collector, doesn't support sampling, etc.
-
-Also, Minit isn't what you are looking for if you want to do actual distributed tracing. The bits/helpers required to inject and extract trace context in different protocols are missing.
-
-Truth to be said: Because it's so small, it's easy to understand and modify. So, technically, you could build the fancy features on top of it. It's also pretty easy to use in simple applications.
+So, you could build the fancy features on top of it. It's also easy to use in simple applications.
 
 ## Installation
 
@@ -20,6 +16,7 @@ go get github.com/dgzlopes/minit-go
 
 ## Usage
 
+This is the code:
 ```go
 package main
 
@@ -105,4 +102,5 @@ func (a *App) WithChildSpanAndFailure(ctx context.Context) {
 }
 ```
 
+This is the trace it would export:
 ![Screenshot](./screenshot.png)
