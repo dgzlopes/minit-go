@@ -91,7 +91,7 @@ func (a *App) WithChildSpanAndFailure(ctx context.Context) {
 
 	time.Sleep(1 * time.Second)
 
-    child.MarkAsFailed()
+        child.MarkAsFailed()
 	child.Events = append(span.Events, minit.Event{
 		Timestamp: time.Now(),
 		Fields: map[string]string{
