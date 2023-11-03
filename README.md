@@ -20,7 +20,7 @@ It's also easy to use in simple, non-distributed applications.
 ## Installation
 
 ```go
-go get github.com/dgzlopes/minit-go
+go get github.com/dgzlopes/minit
 ```
 
 ## Usage
