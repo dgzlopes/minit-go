@@ -25,7 +25,6 @@ go get github.com/dgzlopes/minit
 
 ## Usage
 
-This is the code:
 ```go
 package main
 
