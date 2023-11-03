@@ -2,7 +2,7 @@
 
 > **NOTE:** You don't want to use this library. You should probably be using [OpenTelemetry](https://opentelemetry.io/).
 
-Minit is a minimal tracing library for Go. When I say minimal, I mean it: It's less than 250 lines of code.
+Minit is a minimal tracing library for Go. When I say minimal, I mean it: It's ~300 lines of code and has no dependencies*.
 
 As you can expect, it doesn't have many features. For example, it only supports exporting spans to an OpenTelemetry HTTP-compatible collector, doesn't support sampling, etc. 
 
@@ -11,6 +11,8 @@ The bits/helpers required to inject and extract trace context in different proto
 Truth to be said: Because it's so tiny, it's easy to understand and modify. 
 
 It's also easy to use in simple, non-distributed applications.
+
+<small>*Instead of [using the OTEL Protobufs](https://gist.github.com/dgzlopes/831a393c8071193b50165df9b72d3653), we moved the important bits to Go structs (check `pkg/otel`).</small>
 
 ## Installation
 
@@ -37,74 +39,35 @@ type App struct {
 
 func main() {
 	tracing := minit.NewTracingClient("http://localhost:4318/v1/traces")
+	defer tracing.Export()
 
 	app := App{
 		tracing: tracing,
 	}
 
-	trace := tracing.StartTrace()
-	root := trace.StartSpan("main")
+	_, ctx := tracing.StartTrace(context.Background())
+	root, ctx := tracing.StartSpan(ctx, "hello!")
+	root.Service.Name = "my-app"
+	defer root.Finish()
 
-	// Basic
-	app.RunCallToDB(trace)
+	// Do something...
 
-	// With context
-	traced_ctx := trace.InjectInContext(context.Background())
-	app.WithChildSpanAndFailure(traced_ctx)
-
-	root.Finish()
-
-	err := tracing.Export()
-	if err != nil {
-		panic(err)
-	}
+	app.WithChildSpan(ctx)
 }
 
-func NewDBSpan(trace *minit.Trace, operation string) *minit.Span {
-	span := trace.StartSpan(operation)
-	span.Service.Name = "db"
-	span.Service.Attributes = map[string]string{
-		"db.type": "mysql",
-	}
-	return span
-}
-
-func (_ *App) RunCallToDB(trace *minit.Trace) {
-	span := NewDBSpan(trace, "query")
-	span.Attributes["db.statement"] = "SELECT * FROM users"
+func (a *App) WithChildSpan(ctx context.Context) {
+	span, ctx := a.tracing.StartSpan(ctx, "with_child_span")
 	defer span.Finish()
 
-	time.Sleep(1 * time.Second)
+	// Do something...
 
-	span.Events = append(span.Events, minit.Event{
-		Timestamp: time.Now(),
-		Fields: map[string]string{
-			"event": "query_finished",
-		},
-	})
-}
-
-func (a *App) WithChildSpanAndFailure(ctx context.Context) {
-	span, ctx := a.tracing.StartSpanFromCtx(ctx, "with_child_span")
-	defer span.Finish()
-
-	time.Sleep(1 * time.Second)
-
-	child, _ := a.tracing.StartSpanFromCtx(ctx, "child")
+	child, _ := a.tracing.StartSpan(ctx, "child")
 	defer child.Finish()
 
-	time.Sleep(1 * time.Second)
+	// Do something else...
 
-        child.MarkAsFailed()
-	child.Events = append(span.Events, minit.Event{
-		Timestamp: time.Now(),
-		Fields: map[string]string{
-			"level":   "error",
-			"message": "something went wrong",
-		},
-	})
+	if (true) {
+		child.MarkAsFailed()
+	}
 }
 ```
-
-This is the trace it would export:
-![Screenshot](./screenshot.png)
