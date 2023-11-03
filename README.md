@@ -1,8 +1,10 @@
 # minit-go
 
-> **NOTE:** You don't want to use this library. You should probably be using [OpenTelemetry](https://opentelemetry.io/).
+> **NOTE:** You don't want to use this library. You should probably be using [OpenTelemetry]([https://opentelemetry.io/](https://opentelemetry.io/docs/instrumentation/go/)).
 
-Minit is a minimal tracing library for Go. When I say minimal, I mean it: It's ~300 lines of code and has no dependencies*.
+Minit is a minimal tracing library for Go. 
+
+When I say minimal, I mean it: It's ~300 lines of code and has no dependencies*.
 
 As you can expect, it doesn't have many features. For example, it only supports exporting spans to an OpenTelemetry HTTP-compatible collector, doesn't support sampling, etc. 
 
