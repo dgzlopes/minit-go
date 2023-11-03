@@ -7,7 +7,7 @@ Minit is a minimal tracing library for Go.
 When I say minimal, I mean it: It's ~300 lines of code and has no dependencies*.
 
 As you can expect, it has many limitations:
--  Only works OpenTelemetry HTTP-compatible collector.
+-  Only works with OpenTelemetry HTTP-compatible collectors.
 -  Doesn't support sampling.
 -  No helpers to use in distributed/microservices setups. 
 
