@@ -19,7 +19,7 @@ It's also easy to use in simple, non-distributed applications.
 
 ## Installation
 
-```go
+```bash
 go get github.com/dgzlopes/minit
 ```
 
