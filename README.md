@@ -1,4 +1,4 @@
-# minit-go
+# minit-go [![Go Reference](https://pkg.go.dev/badge/github.com/dgzlopes/minit.svg)](https://pkg.go.dev/github.com/dgzlopes/minit)
 
 > **NOTE:** You don't want to use this library. You should probably be using [OpenTelemetry]([https://opentelemetry.io/](https://opentelemetry.io/docs/instrumentation/go/)).
 
